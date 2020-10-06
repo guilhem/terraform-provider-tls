@@ -5,7 +5,9 @@ import (
 	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/sha1"
 	"crypto/x509"
+	"encoding/hex"
 	"encoding/pem"
 	"fmt"
 
@@ -96,6 +98,11 @@ func resourcePrivateKey() *schema.Resource {
 				Type:     schema.TypeString,
 				Computed: true,
 			},
+
+			"thumbprint_sha1": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
 		},
 	}
 }
@@ -134,7 +141,10 @@ func CreatePrivateKey(d *schema.ResourceData, meta interface{}) error {
 	}
 	keyPem := string(pem.EncodeToMemory(keyPemBlock))
 
+	thumberprintSha1 := sha1.Sum(keyPemBlock.Bytes)
+
 	d.Set("private_key_pem", keyPem)
+	d.Set("thumbprint_sha1", hex.EncodeToString(thumberprintSha1[:]))
 
 	return readPublicKey(d, key)
 }

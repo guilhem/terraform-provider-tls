@@ -29,7 +29,10 @@ func TestPrivateKeyRSA(t *testing.T) {
                     }
                     output "public_key_fingerprint_md5" {
                         value = "${tls_private_key.test.public_key_fingerprint_md5}"
-                    }
+										}
+										output "thumbprint_sha1" {
+											value = "${tls_private_key.test.thumbprint_sha1}"
+									}
                 `,
 				Check: func(s *terraform.State) error {
 					gotPrivateUntyped := s.RootModule().Outputs["private_key_pem"].Value
@@ -70,6 +73,15 @@ func TestPrivateKeyRSA(t *testing.T) {
 					}
 					if !(gotPublicFingerprint[2] == ':') {
 						return fmt.Errorf("MD5 public key fingerprint is missing : in the correct place")
+					}
+
+					gotThumbprintUntyped := s.RootModule().Outputs["thumbprint_sha1"].Value
+					gotThumbprint, ok := gotThumbprintUntyped.(string)
+					if !ok {
+						return fmt.Errorf("output for \"thumbprint_sha1\" is not a string")
+					}
+					if !(len(gotThumbprint) == 40) {
+						return fmt.Errorf("lenght of sha1 thumbprint \"%s\" is not 40 digits", gotThumbprint)
 					}
 
 					return nil
